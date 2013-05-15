@@ -1,6 +1,6 @@
 import MySQLdb
 
-prime = 103
+prime = 11
 
 try:
 	count = 1

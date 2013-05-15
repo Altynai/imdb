@@ -69,7 +69,7 @@ def split(line):
 		id -= 1
 	return name.replace('"', '').replace('\\','\\\\').strip(), year, genre_dict.get(genre)
 
-prime = 103
+prime = 11
 template = """insert into imdb.movie_%d values("%s", "%s", %d);\n"""
 
 

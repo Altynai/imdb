@@ -1,5 +1,4 @@
-drop database if exists imdb;
-drop table if exists imdb.genre_type;
+drop table if exists genre_type;
 drop table if exists movie_0;
 drop table if exists movie_1;
 drop table if exists movie_2;

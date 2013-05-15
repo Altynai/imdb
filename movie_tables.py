@@ -1,6 +1,6 @@
 import sys
 
-prime = 103
+prime = 11
 template = """drop table if exists movie_%d;
 create table movie_%d(
 	name varchar(50) not null,
