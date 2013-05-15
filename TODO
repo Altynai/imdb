@@ -1,0 +1,6 @@
+
+sql.py
+	select(), update(), insert(), delete(), drop(), create()
+	sqlfile()
+
+GUI
