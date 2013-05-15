@@ -70,7 +70,7 @@ def split(line):
 	return name.replace('"', '').replace('\\','\\\\').strip(), year, genre_dict.get(genre)
 
 prime = 11
-template = """insert into imdb.movie_%d values("%s", "%s", %d);\n"""
+template = """insert into movie_%d values("%s", "%s", %d);\n"""
 
 
 sqlwrite = []
@@ -78,7 +78,7 @@ for i in xrange(prime):
 	sqlwrite.append(open('sql/movie/movie_%d.sql' % i, 'w'))
 
 
-with open('genres.backup', 'r') as fin:
+with open('test.list', 'r') as fin:
 	lastname = ""
 	lastyear = ""
 	lasttableid = 0

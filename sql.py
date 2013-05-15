@@ -110,6 +110,7 @@ def test():
 		for sql in genre_type:
 			cur.execute(sql)
 		for sql in movie_table:
+			sqler.logger.info(sql + "\tok")
 			cur.execute(sql)
 		for sql in movie_0:
 			cur.execute(sql)

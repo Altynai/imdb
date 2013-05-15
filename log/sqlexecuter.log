@@ -1,34 +1,24 @@
-line:[30] 2013-05-15 21:25:22,675 sql.py ERROR SQL error: near "database": syntax error 
-line:[30] 2013-05-15 21:25:22,676 sql.py ERROR SQL error: near "database": syntax error 
-line:[30] 2013-05-15 21:25:22,677 sql.py ERROR SQL error: unknown database imdb 
-line:[30] 2013-05-15 21:25:22,677 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,677 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,678 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,678 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,678 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,678 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,678 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,679 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,680 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,681 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,681 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,681 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,681 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,682 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,682 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,682 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,682 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,682 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,683 sql.py ERROR SQL error: no such table: imdb.genre_type 
-line:[30] 2013-05-15 21:25:22,762 sql.py ERROR SQL error: near "database": syntax error 
+line:[103] 2013-05-15 23:29:20,911 sql.py INFO redis:0.0645549297333s
+line:[113] 2013-05-15 23:29:21,484 sql.py INFO drop table if exists movie_0;	ok
+line:[113] 2013-05-15 23:29:21,703 sql.py INFO create table movie_0(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:22,325 sql.py INFO drop table if exists movie_1;	ok
+line:[113] 2013-05-15 23:29:22,326 sql.py INFO create table movie_1(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:22,847 sql.py INFO drop table if exists movie_2;	ok
+line:[113] 2013-05-15 23:29:22,848 sql.py INFO create table movie_2(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:23,336 sql.py INFO drop table if exists movie_3;	ok
+line:[113] 2013-05-15 23:29:23,337 sql.py INFO create table movie_3(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:23,947 sql.py INFO drop table if exists movie_4;	ok
+line:[113] 2013-05-15 23:29:23,948 sql.py INFO create table movie_4(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:24,458 sql.py INFO drop table if exists movie_5;	ok
+line:[113] 2013-05-15 23:29:24,459 sql.py INFO create table movie_5(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:25,370 sql.py INFO drop table if exists movie_6;	ok
+line:[113] 2013-05-15 23:29:25,371 sql.py INFO create table movie_6(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:25,926 sql.py INFO drop table if exists movie_7;	ok
+line:[113] 2013-05-15 23:29:25,927 sql.py INFO create table movie_7(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:26,436 sql.py INFO drop table if exists movie_8;	ok
+line:[113] 2013-05-15 23:29:26,437 sql.py INFO create table movie_8(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:27,007 sql.py INFO drop table if exists movie_9;	ok
+line:[113] 2013-05-15 23:29:27,008 sql.py INFO create table movie_9(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[113] 2013-05-15 23:29:27,675 sql.py INFO drop table if exists movie_10;	ok
+line:[113] 2013-05-15 23:29:27,676 sql.py INFO create table movie_10(	name varchar(50) not null,	year varchar(10) not null,	genre int);	ok
+line:[122] 2013-05-15 23:29:31,447 sql.py INFO mysql:7.29831194878s
