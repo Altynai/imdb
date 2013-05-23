@@ -9,7 +9,7 @@ create table movie_%d(
 );
 """
 
-sys.stdout = open('sql/movie_table.sql', 'w')
+sys.stdout = open('movie_table.sql', 'w')
 for i in xrange(prime):
 	print template % (i, i)
 

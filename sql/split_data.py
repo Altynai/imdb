@@ -75,7 +75,7 @@ template = """insert into movie_%d values("%s", "%s", %d);\n"""
 
 sqlwrite = []
 for i in xrange(prime):
-	sqlwrite.append(open('sql/movie/movie_%d.sql' % i, 'w'))
+	sqlwrite.append(open('movie/movie_%d.sql' % i, 'w'))
 
 
 with open('test.list', 'r') as fin:
