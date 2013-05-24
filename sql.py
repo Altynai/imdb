@@ -32,7 +32,7 @@ class sqlexecuter(object):
 			self.logger.error(e)
 			return False, e
 
-	def splie_sql_file(self, filepath):
+	def split_sql_file(self, filepath):
 		"""
 		if file contains a lot of sql, they should be split by ';'
 		such as
@@ -66,6 +66,40 @@ class sqlexecuter(object):
 						break
 		return sqllist
 
+	def split_sql_text(self, text):
+		"""
+		if text contains a lot of sql, they should be split by ';'
+		such as
+
+		text
+		-----------------
+		sql1;\n
+		sql2;\n
+		sql3;\n
+		-----------------
+		
+		return [sql1,sql2,...]
+		"""
+		sqllist = list()
+		textlist = text.split('\n')
+		size = len(textlist)
+		index = 0
+
+		while index < size:
+			sql = ""
+			while index < size:
+				line = textlist[index]
+				index = index + 1
+				line = line.strip(' \n')
+				sql = sql + line
+				if index >= size:
+					if sql:sqllist.append(sql)
+					break
+				if line[-1:] == ';':
+					if sql:sqllist.append(sql)
+					break
+		return sqllist
+
 	def select(self, sqlcontent):
 		return self.execute_sql(sqlcontent)
 
@@ -85,10 +119,10 @@ class sqlexecuter(object):
 def test():
 	try:
 		sqler = sqlexecuter()
-		genre_type = sqler.splie_sql_file("sql/genre_type_table.sql")
-		movie_table = sqler.splie_sql_file("sql/movie_table.sql")
-		movie_0 =sqler.splie_sql_file("sql/movie/movie_0.sql")
-		cleanup = sqler.splie_sql_file("sql/cleanup.sql")
+		genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
+		movie_table = sqler.split_sql_file("sql/movie_table.sql")
+		movie_0 =sqler.split_sql_file("sql/movie/movie_0.sql")
+		cleanup = sqler.split_sql_file("sql/cleanup.sql")
 
 		redis_start = time.time()
 		for sql in genre_type:

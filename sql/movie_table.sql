@@ -74,4 +74,3 @@ create table movie_10(
 	year varchar(10) not null,
 	genre int
 );
-
