@@ -1,6 +1,8 @@
 import redis
 import logging
 import time
+import string
+import random
 import MySQLdb
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
@@ -121,39 +123,71 @@ def test():
 		sqler = sqlexecuter()
 		genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
 		movie_table = sqler.split_sql_file("sql/movie_table.sql")
-		movie_0 =sqler.split_sql_file("sql/movie/movie_0.sql")
 		cleanup = sqler.split_sql_file("sql/cleanup.sql")
 
-		redis_start = time.time()
 		for sql in genre_type:
 			sqler.execute_sql(sql)
 		for sql in movie_table:
 			sqler.execute_sql(sql)
-		for sql in movie_0:
-			sqler.execute_sql(sql)
+
+		redis_write = 0
+		redis_read = 0
+		write_count = 0
+		for x in xrange(0, 6):
+			movie_x =sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
+			redis_start = time.time()
+			for sql in movie_x:
+				write_count += 1
+				sqler.execute_sql(sql)
+			redis_end = time.time()
+			redis_write += redis_end - redis_start
+
+		redis_start = time.time()
+		for i in xrange(100):
+			sqler.execute_sql("select * from movie_0")
 		redis_end = time.time()
+		redis_read += redis_end - redis_start
+
 		for sql in cleanup:
 			sqler.execute_sql(sql)
-		sqler.logger.info('redis:' + str(redis_end - redis_start) + "s")
+		sqler.logger.info('redis witre:' + str(write_count) + " times")
+		sqler.logger.info('redis witre:' + str(redis_write) + "s")
+		sqler.logger.info('redis read:' + str(redis_read) + "s")
 		
 
-		conn = MySQLdb.connect(host = 'localhost',user = 'root',passwd = '121212',db = 'redis',port = 3306)
+		conn = MySQLdb.connect(host = 'localhost',user = 'root',passwd = '121212', db = 'redis', port = 3306)
 		cur = conn.cursor()
-		mysql_start = time.time();
 
 		for sql in genre_type:
 			cur.execute(sql)
 		for sql in movie_table:
-			sqler.logger.info(sql + "\tok")
-			cur.execute(sql)
-		for sql in movie_0:
-			cur.execute(sql)
-		mysql_end = time.time()
-		for sql in cleanup:
 			cur.execute(sql)
 
+		mysql_write = 0
+		write_count = 0
+		mysql_read = 0
+		for x in xrange(0, 6):
+			movie_x = sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
+			mysql_start = time.time()
+			for sql in movie_x:
+				write_count += 1
+				cur.execute(sql)
+			conn.commit()
+			mysql_end = time.time()
+			mysql_write += mysql_end - mysql_start
+
+		mysql_start = time.time()
+		for i in xrange(100):
+			cur.execute("select * from movie_0")
+		mysql_end = time.time()
+		mysql_read += mysql_end - mysql_start
+
+		for sql in cleanup:
+			cur.execute(sql)
+		sqler.logger.info('mysql write:' + str(write_count) + " times")
+		sqler.logger.info('mysql write:' + str(mysql_write) + "s")
+		sqler.logger.info('mysql read:' + str(mysql_read) + "s")
 		conn.commit()
-		sqler.logger.info('mysql:' + str(mysql_end - mysql_start) + "s")
 
 		cur.close()
 		conn.close()

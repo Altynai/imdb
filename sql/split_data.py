@@ -78,13 +78,14 @@ for i in xrange(prime):
 	sqlwrite.append(open('movie/movie_%d.sql' % i, 'w'))
 
 
-with open('test.list', 'r') as fin:
+with open('genres.list', 'r') as fin:
 	lastname = ""
 	lastyear = ""
 	lasttableid = 0
 	mask = 0
 	row = 1
-	while True:
+	limits = 10000
+	while row <= limits:
 		line = fin.readline()
 		if line:
 			print '%d processing..' % row

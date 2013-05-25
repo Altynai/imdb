@@ -3,8 +3,8 @@ import sys
 prime = 11
 template = """drop table if exists movie_%d;
 create table movie_%d(
-	name varchar(50) not null,
-	year varchar(10) not null,
+	name varchar(150) not null,
+	year varchar(20) not null,
 	genre int
 );
 """
