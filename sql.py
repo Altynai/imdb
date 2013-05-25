@@ -118,43 +118,52 @@ class sqlexecuter(object):
 		return self.execute_sql(sqlcontent)
 
 
-def test():
-	try:
-		sqler = sqlexecuter()
-		genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
-		movie_table = sqler.split_sql_file("sql/movie_table.sql")
-		cleanup = sqler.split_sql_file("sql/cleanup.sql")
+def testRedis(openIndex = False):
+	sqler = sqlexecuter()
+	genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
+	movie_table = sqler.split_sql_file("sql/movie_table.sql")
+	cleanup = sqler.split_sql_file("sql/cleanup.sql")
 
-		for sql in genre_type:
-			sqler.execute_sql(sql)
-		for sql in movie_table:
-			sqler.execute_sql(sql)
+	for sql in genre_type:
+		sqler.execute_sql(sql)
+	for sql in movie_table:
+		sqler.execute_sql(sql)
 
-		redis_write = 0
-		redis_read = 0
-		write_count = 0
-		for x in xrange(0, 6):
-			movie_x =sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
-			redis_start = time.time()
-			for sql in movie_x:
-				write_count += 1
-				sqler.execute_sql(sql)
-			redis_end = time.time()
-			redis_write += redis_end - redis_start
-
+	redis_write = 0
+	redis_read = 0
+	write_count = 0
+	for x in xrange(0, 6):
+		movie_x =sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
 		redis_start = time.time()
-		for i in xrange(100):
-			sqler.execute_sql("select * from movie_0")
-		redis_end = time.time()
-		redis_read += redis_end - redis_start
-
-		for sql in cleanup:
+		for sql in movie_x:
+			write_count += 1
 			sqler.execute_sql(sql)
-		sqler.logger.info('redis witre:' + str(write_count) + " times")
-		sqler.logger.info('redis witre:' + str(redis_write) + "s")
-		sqler.logger.info('redis read:' + str(redis_read) + "s")
-		
+		redis_end = time.time()
+		redis_write += redis_end - redis_start
 
+	if openIndex:
+		for x in xrange(0, 6):
+			sqler.execute_sql("create index genre_index_%d on movie_%d(genre)" % (x, x))
+
+	redis_start = time.time()
+	for i in xrange(10000):
+		sqler.execute_sql("select * from movie_0 where genre = %d" % random.randint(1,100000))
+	redis_end = time.time()
+	redis_read += redis_end - redis_start
+
+	for sql in cleanup:
+		sqler.execute_sql(sql)
+	sqler.logger.info('redis witre:' + str(write_count) + " times")
+	sqler.logger.info('redis witre:' + str(redis_write) + "s")
+	sqler.logger.info('redis%s read:' % ("(With Index)" if openIndex else "") + str(redis_read) + "s")
+
+
+def testMySQL():
+	sqler = sqlexecuter()
+	genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
+	movie_table = sqler.split_sql_file("sql/movie_table.sql")
+	cleanup = sqler.split_sql_file("sql/cleanup.sql")
+	try:
 		conn = MySQLdb.connect(host = 'localhost',user = 'root',passwd = '121212', db = 'redis', port = 3306)
 		cur = conn.cursor()
 
@@ -177,8 +186,8 @@ def test():
 			mysql_write += mysql_end - mysql_start
 
 		mysql_start = time.time()
-		for i in xrange(100):
-			cur.execute("select * from movie_0")
+		for i in xrange(10000):
+			cur.execute("select * from movie_0 where genre = %d" % random.randint(1,100000))
 		mysql_end = time.time()
 		mysql_read += mysql_end - mysql_start
 
@@ -203,4 +212,6 @@ if __name__ == '__main__':
 	"""
 	just test:)
 	"""
-	test()
+	testMySQL()
+	testRedis()
+	testRedis(True)

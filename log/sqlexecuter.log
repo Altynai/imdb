@@ -1,6 +1,9 @@
-line:[153] 2013-05-25 16:42:43,530 sql.py INFO redis witre:3294 times
-line:[154] 2013-05-25 16:42:43,531 sql.py INFO redis witre:0.89781832695s
-line:[155] 2013-05-25 16:42:43,531 sql.py INFO redis read:1.63194608688s
-line:[187] 2013-05-25 16:42:57,613 sql.py INFO mysql write:3294 times
-line:[188] 2013-05-25 16:42:57,613 sql.py INFO mysql write:2.1594209671s
-line:[189] 2013-05-25 16:42:57,614 sql.py INFO mysql read:0.0748529434204s
+line:[196] 2013-05-25 19:34:08,157 sql.py INFO mysql write:3294 times
+line:[197] 2013-05-25 19:34:08,158 sql.py INFO mysql write:2.95379686356s
+line:[198] 2013-05-25 19:34:08,158 sql.py INFO mysql read:10.3408880234s
+line:[156] 2013-05-25 19:34:19,483 sql.py INFO redis witre:3294 times
+line:[157] 2013-05-25 19:34:19,483 sql.py INFO redis witre:0.851782083511s
+line:[158] 2013-05-25 19:34:19,484 sql.py INFO redis read:10.441368103s
+line:[156] 2013-05-25 19:34:26,241 sql.py INFO redis witre:3294 times
+line:[157] 2013-05-25 19:34:26,241 sql.py INFO redis witre:0.939613819122s
+line:[158] 2013-05-25 19:34:26,241 sql.py INFO redis(With Index) read:5.75849199295s
