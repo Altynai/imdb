@@ -2,6 +2,7 @@
 # -*- coding: utf-8 -*-
 
 import sys
+import time
 from sql import sqlexecuter
 from PyQt4 import QtGui, QtCore
 
@@ -19,7 +20,7 @@ class MainFrame(QtGui.QWidget):
         self.buildFrame()
     
     def buildFrame(self):
-        hbox = QtGui.QHBoxLayout(self)
+        vbox = QtGui.QVBoxLayout(self)
         columns = 6
         self.tableWidget = QtGui.QTableWidget(1, columns)
         headerLabels = [x.decode('utf-8') for x in ('',) * columns]
@@ -31,8 +32,8 @@ class MainFrame(QtGui.QWidget):
         splitter.addWidget(self.textEdit)
         splitter.addWidget(self.tableWidget)
 
-        hbox.addWidget(splitter)
-        self.setLayout(hbox)
+        vbox.addWidget(splitter)
+        self.setLayout(vbox)
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
 
     def initTextEdit(self):
@@ -46,14 +47,37 @@ class MainFrame(QtGui.QWidget):
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
         QtGui.QMainWindow.__init__(self)
-        self.tabWidge = QtGui.QTabWidget()
         self.setWindowTitle(u'内存数据库')
+        self.centralWidget = QtGui.QTabWidget()
+        self.tabWidge = QtGui.QTabWidget()
+        vbox = QtGui.QVBoxLayout(self)
+        
+        self.initActionTableWidget()
         self.newFile()
         self.initMenuBar()
 
-        screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setGeometry(0, 0, screen.width() / 2, screen.height() / 2)
+        splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
+        splitter.addWidget(self.tabWidge)
+        splitter.addWidget(self.actionTableWidget)
 
+        vbox.addWidget(splitter)
+        self.centralWidget.setLayout(vbox)
+        self.setCentralWidget(self.centralWidget)
+
+        screen = QtGui.QDesktopWidget().screenGeometry()
+        self.setGeometry(0, 0, screen.width() * 0.75, screen.height()  * 0.75)
+
+        self.addAction()
+        self.addAction()
+
+
+    def initActionTableWidget(self):
+        self.actionTableWidget = QtGui.QTableWidget(0, 4)
+        self.actionCount = 0
+        headerLabels = ['Time', 'Action', 'Message', 'Duration']
+        self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
+        self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
+        self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
 
     def initMenuBar(self):
         menubar = self.menuBar()
@@ -110,8 +134,15 @@ class MainWindow(QtGui.QMainWindow):
         runAction.setStatusTip(u'运行命令')
         self.connect(runAction, QtCore.SIGNAL('triggered()'), self.runCommand)
 
-        run = menubar.addMenu(u'&运行')
+        # clear
+        clearAction = QtGui.QAction(u'qingchu', self)
+        clearAction.setShortcut('Ctrl+D')
+        clearAction.setStatusTip(u'qingchu')
+        self.connect(runAction, QtCore.SIGNAL('triggered()'), self.clearCommand)
+
+        run = menubar.addMenu(u'&gongju')
         run.addAction(runAction)
+        run.addAction(clearAction)
 
 
         # Help
@@ -123,12 +154,10 @@ class MainWindow(QtGui.QMainWindow):
         help = menubar.addMenu(u'&帮助')
         help.addAction(helpAction)
 
-
     def newFile(self):
         mainFrame = MainFrame()
         self.tabWidge.addTab(mainFrame, mainFrame.fileName)
         self.tabWidge.setCurrentWidget(mainFrame)
-        self.setCentralWidget(self.tabWidge)
 
     def openFile(self):
         self.saveFile()
@@ -186,6 +215,21 @@ class MainWindow(QtGui.QMainWindow):
         if tabCount == 1:
             self.newFile()
 
+    def addAction(self, action = "", message = "", duration = ""):
+        self.actionTableWidget.insertRow(self.actionCount)
+        self.actionCount +=1
+        
+        currentTime = time.strftime(r"%H:%M:%S", time.localtime())
+        arglist = [currentTime, action, message, duration]
+        for i in xrange(len(arglist)):
+            content = QtCore.QString.fromUtf8(arglist[i])
+            self.actionTableWidget.setItem(1, i, QtGui.QTableWidgetItem(content))
+
+
+    def runRedisCommand(self):
+        currentFrame = self.tabWidge.currentWidget()
+
+
     def runCommand(self):
         currentFrame = self.tabWidge.currentWidget()
         sql = currentFrame.textEdit.toPlainText()
@@ -214,8 +258,18 @@ class MainWindow(QtGui.QMainWindow):
             currentFrame.tableWidget.setRowCount(1)
             header = [QtCore.QString.fromUtf8("错误")]
             currentFrame.tableWidget.setHorizontalHeaderLabels(header)
+            # headerItem = currentFrame.tableWidget.horizontalHeaderItem(0)
+            # sizeHint = headerItem.sizeHint()
+            # sizeHint.setWidth(sizeHint.width() << 1)
+            # headerItem.setSizeHint(sizeHint)
+            # currentFrame.tableWidget.editItem(headerItem)
             errorString = QtCore.QString.fromUtf8(str(resultlist))
             currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(errorString))
+
+    def clearCommand(self):
+        for i in xrange(self.actionTableWidget.rowCount()):
+            self.actionTableWidget.removeTRow(0)
+        self.actionCount = 0
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
