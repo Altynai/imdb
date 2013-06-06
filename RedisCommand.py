@@ -100,17 +100,16 @@ def getRedisCommand():
 if __name__ == '__main__':
 	sys.stdout = open("command.list", "w")
 	url = "http://redis.io/commands"
-	commandset = set(redis.StrictRedis.RESPONSE_CALLBACKS.keys()) # uppercase
+
 	soup = BeautifulSoup(urllib.urlopen(url).read())
 	for command in soup.find_all("span", class_ = "command"):
 		strings = [process(str(x)) for x in command.stripped_strings]
 		command = strings[0].upper() 
 
-		if command in commandset:
-			if len(strings) == 1:
-				print "commands.setdefault('%s', 0)" % command.lower()
-			else:
-				args = strings[1]
-				print "commands.setdefault('%s', %d)" % (command.lower(), -1 if args.find('[') != -1 else len(args.split()))
+		if len(strings) == 1:
+			print "commands.setdefault('%s', 0)" % command.lower()
+		else:
+			args = strings[1]
+			print "commands.setdefault('%s', %d)" % (command.lower(), -1 if args.find('[') != -1 else len(args.split()))
 
 	print getRedisCommand()

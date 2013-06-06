@@ -3,17 +3,25 @@
 
 import sys
 import time
-from sql import sqlexecuter
+import logging
+from executer import Executer
 from PyQt4 import QtGui, QtCore
+
+loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
+
+logging.basicConfig(format = loggerformat,
+                filename = 'log/gui.log',
+                filemode = 'w',
+                level = logging.DEBUG)
 
 tabCount = 1
 
-class MainFrame(QtGui.QWidget):
+class MainFrame(QtGui.QWidget): 
     """主窗体类，包括一个TextEdit和TableWidget"""
     def __init__(self):
         super(MainFrame, self).__init__()
         global tabCount
-        self.fileName = 'new file%d' % tabCount
+        self.fileName = u'新文件%d' % tabCount
         tabCount += 1
         self.filePath = ""
         self.initTextEdit()
@@ -43,10 +51,12 @@ class MainFrame(QtGui.QWidget):
 
 
 
-
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
+        self.logger = logging.getLogger()
+        self
         QtGui.QMainWindow.__init__(self)
+
         self.setWindowTitle(u'内存数据库')
         self.centralWidget = QtGui.QTabWidget()
         self.tabWidge = QtGui.QTabWidget()
@@ -67,25 +77,23 @@ class MainWindow(QtGui.QMainWindow):
         screen = QtGui.QDesktopWidget().screenGeometry()
         self.setGeometry(0, 0, screen.width() * 0.75, screen.height()  * 0.75)
 
-        self.addAction()
-        self.addAction()
-
 
     def initActionTableWidget(self):
         self.actionTableWidget = QtGui.QTableWidget(0, 4)
         self.actionCount = 0
-        headerLabels = ['Time', 'Action', 'Message', 'Duration']
+        headerLabels = [u'时间', u'语句', u'结果', u'执行时间']
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+
 
     def initMenuBar(self):
         menubar = self.menuBar()
 
         # new
-        newAction = QtGui.QAction(u'xinjian', self)
+        newAction = QtGui.QAction(u'新建', self)
         newAction.setShortcut('Ctrl+N')
-        newAction.setStatusTip(u'xinjian文件')
+        newAction.setStatusTip(u'新建文件')
         self.connect(newAction, QtCore.SIGNAL('triggered()'), self.newFile)
         
         # open
@@ -93,7 +101,6 @@ class MainWindow(QtGui.QMainWindow):
         openAction.setShortcut('Ctrl+O')
         openAction.setStatusTip(u'打开文件')
         self.connect(openAction, QtCore.SIGNAL('triggered()'), self.openFile)
-
 
         # save
         saveAction = QtGui.QAction(u'保存', self)
@@ -104,13 +111,13 @@ class MainWindow(QtGui.QMainWindow):
         # saveAs
         saveAsAction = QtGui.QAction(u'另存为', self)
         saveAsAction.setShortcut('Ctrl+Shift+S')
-        saveAsAction.setStatusTip(u'文件另存为')
+        saveAsAction.setStatusTip(u'另存为')
         self.connect(saveAsAction, QtCore.SIGNAL('triggered()'), self.saveAsFile)
 
         # closeFile
-        closeFileAction = QtGui.QAction(u'closeFile', self)
+        closeFileAction = QtGui.QAction(u'关闭', self)
         closeFileAction.setShortcut('Ctrl+W')
-        closeFileAction.setStatusTip(u'guanbiwenjian')
+        closeFileAction.setStatusTip(u'关闭文件')
         self.connect(closeFileAction, QtCore.SIGNAL('triggered()'), self.closeFile)
 
         # exit
@@ -135,15 +142,14 @@ class MainWindow(QtGui.QMainWindow):
         self.connect(runAction, QtCore.SIGNAL('triggered()'), self.runCommand)
 
         # clear
-        clearAction = QtGui.QAction(u'qingchu', self)
+        clearAction = QtGui.QAction(u'清除', self)
         clearAction.setShortcut('Ctrl+D')
-        clearAction.setStatusTip(u'qingchu')
-        self.connect(runAction, QtCore.SIGNAL('triggered()'), self.clearCommand)
+        clearAction.setStatusTip(u'清除执行记录')
+        self.connect(clearAction, QtCore.SIGNAL('triggered()'), self.clearCommand)
 
-        run = menubar.addMenu(u'&gongju')
+        run = menubar.addMenu(u'&工具')
         run.addAction(runAction)
         run.addAction(clearAction)
-
 
         # Help
         helpAction = QtGui.QAction(u'帮助', self)
@@ -197,7 +203,7 @@ class MainWindow(QtGui.QMainWindow):
         if not modified:
             return
         if not filePath:
-            filePath = QtGui.QFileDialog.getOpenFileName(self, u'baocun')
+            filePath = QtGui.QFileDialog.getOpenFileName(self, u'保存')
             fileName = filePath.split('/')[-1]
         if not filePath:
             return
@@ -217,28 +223,38 @@ class MainWindow(QtGui.QMainWindow):
 
     def addAction(self, action = "", message = "", duration = ""):
         self.actionTableWidget.insertRow(self.actionCount)
-        self.actionCount +=1
-        
         currentTime = time.strftime(r"%H:%M:%S", time.localtime())
         arglist = [currentTime, action, message, duration]
         for i in xrange(len(arglist)):
             content = QtCore.QString.fromUtf8(arglist[i])
-            self.actionTableWidget.setItem(1, i, QtGui.QTableWidgetItem(content))
+            self.actionTableWidget.setItem(self.actionCount, i, QtGui.QTableWidgetItem(content))
+        self.actionCount +=1
 
+    def runCommand(self):
+        currentFrame = self.tabWidge.currentWidget()
+        text = currentFrame.textEdit.toPlainText()
 
     def runRedisCommand(self):
         currentFrame = self.tabWidge.currentWidget()
 
-
-    def runCommand(self):
-        currentFrame = self.tabWidge.currentWidget()
-        sql = currentFrame.textEdit.toPlainText()
-        runner = sqlexecuter()
+    def runSQLCommand(self):
+        runner = SQLExecuter()
         success = False
         resultlist = None
-        for sqlcontent in runner.split_sql_text(str(sql)):
-            success, resultlist = runner.execute_sql(sqlcontent)
-            break
+        for action in runner.split_sql_text(str(sql)):
+            startTime = time.time()
+            success, resultlist = runner.executeSQL(action)
+            durantion = "%.4lfsec" % (time.time() - startTime)
+            
+            self.logger.debug("success = %s, resultlist = %s type(resultlist) = %s" % (str(success), str(resultlist), type(resultlist)))            
+            
+            if success:
+                message = str(resultlist) + "affected." if isinstance(resultlist, long) else str(resultlist[0])
+            else:
+                message = str(resultlist)
+            self.addAction(action, message, durantion)
+
+        return
         # select * from book
         if success:
             header = [QtCore.QString.fromUtf8(x[0]) for x in resultlist[0]]
@@ -258,17 +274,14 @@ class MainWindow(QtGui.QMainWindow):
             currentFrame.tableWidget.setRowCount(1)
             header = [QtCore.QString.fromUtf8("错误")]
             currentFrame.tableWidget.setHorizontalHeaderLabels(header)
-            # headerItem = currentFrame.tableWidget.horizontalHeaderItem(0)
-            # sizeHint = headerItem.sizeHint()
-            # sizeHint.setWidth(sizeHint.width() << 1)
-            # headerItem.setSizeHint(sizeHint)
-            # currentFrame.tableWidget.editItem(headerItem)
             errorString = QtCore.QString.fromUtf8(str(resultlist))
             currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(errorString))
 
+        
+
     def clearCommand(self):
         for i in xrange(self.actionTableWidget.rowCount()):
-            self.actionTableWidget.removeTRow(0)
+            self.actionTableWidget.removeRow(0)
         self.actionCount = 0
 
 if __name__ == '__main__':

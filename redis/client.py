@@ -197,7 +197,7 @@ class StrictRedis(object):
             'PSETEX RENAMENX SISMEMBER SMOVE SETEX SETNX',
             bool
         ),
-        string_keys_to_dict(
+        string_keys_to_dict(    
             'BITCOUNT DECRBY DEL GETBIT HDEL HLEN INCRBY LINSERT LLEN LPUSHX '
             'RPUSHX SADD SCARD SDIFFSTORE SETBIT SETRANGE SINTERSTORE SREM '
             'STRLEN SUNIONSTORE ZADD ZCARD ZREM ZREMRANGEBYRANK '

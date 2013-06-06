@@ -4,6 +4,7 @@ import time
 import string
 import random
 import MySQLdb
+import RedisCommand
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
 
@@ -12,7 +13,7 @@ logging.basicConfig(format = loggerformat,
 				filemode = 'w',
 				level = logging.DEBUG)
 
-class sqlexecuter(object):
+class Executer(object):
 	"""
 	sql executer, execute redis's new command "sql":
 	>>> sql "sql content"
@@ -21,137 +22,151 @@ class sqlexecuter(object):
 	def __init__(self, host = 'localhost', port = 6379, db = 0):
 		self.sqlredis = redis.StrictRedis(host, port, db)
 		self.logger = logging.getLogger()
+		self.redisCommands = RedisCommand.getRedisCommand()
 
-	def execute_sql(self, sqlcontent):
+	def executeSQL(self, command):
 		"""
 		if the sql works, return True, response(may be int, list...)
 		if not, return False, response(a exception)
 		"""
 		try:
-			response = self.sqlredis.sql(sqlcontent)
+			response = self.sqlredis.sql(command)
 			return True, response
 		except Exception, e:
 			self.logger.error(e)
 			return False, e
 
-	def split_sql_file(self, filepath):
+	def executeRedis(self, command):
 		"""
-		if file contains a lot of sql, they should be split by ';'
+		if the redis works, return True, response(may be int, list...)
+		if not, return False, response(a exception)
+		"""
+		arglist = command.split(' ')
+		commandType = arglist[0].lower()
+		arglist = arglist[1:]
+
+		if commandType in self.redisCommands:
+			argv = self.redisCommands.get(commandType)
+			method = getattr(self.sqlredis, commandType)
+
+			if argv == 0:
+				result = method()
+			elif argv == -1:
+				result = method(*arglist)
+			else:
+				argv = argv if argv < len(arglist) else len(arglist)
+				result = method(*(arglist[0:argv]))
+			print result
+		else:
+			self.logger.error("No method named %s()." % commandType)
+			return False
+
+	def splitCommandFile(self, filepath):
+		"""
+		if file contains a lot of command, they should be split by ';'
 		such as
 
-		file.sql
+		file.command
 		-----------------
-		sql1;\n
-		sql2;\n
-		sql3;\n
+		command1;\n
+		command2;\n
+		command3;\n
 		EOF
 		-----------------
 		
-		return [sql1,sql2,...]
+		return [command1,command2,...]
 		"""
-		sqllist = list()
+		text = ""
 		with open(filepath, "r") as fin:
-			sql = ""
-			fileEOF = False
-			while not fileEOF:
-				sql = ""
-				while not fileEOF:
-					line = fin.readline()
-					if not line:
-						if sql:sqllist.append(sql)
-						fileEOF = True
-						break
-					line = line.strip(' \n')
-					sql = sql + line
-					if line[-1:] == ';':
-						if sql:sqllist.append(sql)
-						break
-		return sqllist
+			while True:
+				line = fin.readline()
+				if not line:
+					break
+				text += line
+		return self.splitCommand(text)
 
-	def split_sql_text(self, text):
+	def splitCommand(self, text):
 		"""
-		if text contains a lot of sql, they should be split by ';'
+		if text contains a lot of command, they should be split by ';'
 		such as
 
 		text
 		-----------------
-		sql1;\n
-		sql2;\n
-		sql3;\n
+		command1;\n
+		command2;\n
+		command3;\n
 		-----------------
 		
-		return [sql1,sql2,...]
+		return [command1,command2,...]
 		"""
-		sqllist = list()
+		commandlist = list()
 		textlist = text.split('\n')
 		size = len(textlist)
 		index = 0
 
 		while index < size:
-			sql = ""
+			command = ""
 			while index < size:
 				line = textlist[index]
 				index = index + 1
 				line = line.strip(' \n')
-				sql = sql + line
+				command = command + line
 				if index >= size:
-					if sql:sqllist.append(sql)
+					if command:commandlist.append(command)
 					break
 				if line[-1:] == ';':
-					if sql:sqllist.append(sql)
+					if command:commandlist.append(command)
 					break
-		return sqllist
-
-
-
+		return commandlist
+		
 
 # =================test================= #
 
 def testRedis(openIndex = False):
-	sqler = sqlexecuter()
-	genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
-	movie_table = sqler.split_sql_file("sql/movie_table.sql")
-	cleanup = sqler.split_sql_file("sql/cleanup.sql")
+	sqler = Executer()
+	genre_type = sqler.splitCommandFile("sql/genre_type_table.sql")
+	movie_table = sqler.splitCommandFile("sql/movie_table.sql")
+	cleanup = sqler.splitCommandFile("sql/cleanup.sql")
 
 	for sql in genre_type:
-		sqler.execute_sql(sql)
+		sqler.executeSQL(sql)
 	for sql in movie_table:
-		sqler.execute_sql(sql)
+		sqler.executeSQL(sql)
 
 	redis_write = 0
 	redis_read = 0
 	write_count = 0
 	for x in xrange(0, 6):
-		movie_x =sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
+		movie_x =sqler.splitCommandFile("sql/movie/movie_%d.sql" % x)
 		redis_start = time.time()
 		for sql in movie_x:
 			write_count += 1
-			sqler.execute_sql(sql)
+			sqler.executeSQL(sql)
 		redis_end = time.time()
 		redis_write += redis_end - redis_start
 
 	if openIndex:
 		for x in xrange(0, 6):
-			sqler.execute_sql("create index genre_index_%d on movie_%d(genre)" % (x, x))
+			sqler.executeSQL("create index genre_index_%d on movie_%d(genre)" % (x, x))
 
 	redis_start = time.time()
 	for i in xrange(10000):
-		sqler.execute_sql("select * from movie_0 where genre = %d" % random.randint(1,100000))
+		sqler.executeSQL("select * from movie_0 where genre = %d" % random.randint(1,100000))
 	redis_end = time.time()
 	redis_read += redis_end - redis_start
 
 	for sql in cleanup:
-		sqler.execute_sql(sql)
+		sqler.executeSQL(sql)
 	sqler.logger.info('redis witre:' + str(write_count) + " times")
 	sqler.logger.info('redis witre:' + str(redis_write) + "s")
 	sqler.logger.info('redis%s read:' % ("(With Index)" if openIndex else "") + str(redis_read) + "s")
 
 
 def testMySQL():
-	sqler = sqlexecuter()
-	genre_type = sqler.split_sql_file("sql/genre_type_table.sql")
-	movie_table = sqler.split_sql_file("sql/movie_table.sql")
-	cleanup = sqler.split_sql_file("sql/cleanup.sql")
+	sqler = Executer()
+	genre_type = sqler.splitCommandFile("sql/genre_type_table.sql")
+	movie_table = sqler.splitCommandFile("sql/movie_table.sql")
+	cleanup = sqler.splitCommandFile("sql/cleanup.sql")
 	try:
 		conn = MySQLdb.connect(host = 'localhost',user = 'root',passwd = '121212', db = 'redis', port = 3306)
 		cur = conn.cursor()
@@ -165,7 +180,7 @@ def testMySQL():
 		write_count = 0
 		mysql_read = 0
 		for x in xrange(0, 6):
-			movie_x = sqler.split_sql_file("sql/movie/movie_%d.sql" % x)
+			movie_x = sqler.splitCommandFile("sql/movie/movie_%d.sql" % x)
 			mysql_start = time.time()
 			for sql in movie_x:
 				write_count += 1
@@ -197,10 +212,17 @@ def testMySQL():
 
 	return end - start
 
+def testRedisCommand():
+	rediser = Executer()
+	rediser.executeRedis("get p")
+	rediser.executeRedis("dbsize")
+
+
 if __name__ == '__main__':
 	"""
 	just test:)
 	"""
-	testMySQL()
-	testRedis()
-	testRedis(True)
+	# testMySQL()
+	# testRedis()
+	# testRedis(True)
+	testRedisCommand()
