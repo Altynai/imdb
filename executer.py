@@ -8,7 +8,7 @@ import MySQLdb
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
 
 logging.basicConfig(format = loggerformat,
-				filename = 'log/sqlexecuter.log',
+				filename = 'log/executer.log',
 				filemode = 'w',
 				level = logging.DEBUG)
 
@@ -102,21 +102,10 @@ class sqlexecuter(object):
 					break
 		return sqllist
 
-	def select(self, sqlcontent):
-		return self.execute_sql(sqlcontent)
 
-	def update(self, sqlcontent):
-		return self.execute_sql(sqlcontent)
 
-	def insert(self, sqlcontent):
-		return self.execute_sql(sqlcontent)
 
-	def create(self, sqlcontent):
-		return self.execute_sql(sqlcontent)
-
-	def drop(self, sqlcontent):
-		return self.execute_sql(sqlcontent)
-
+# =================test================= #
 
 def testRedis(openIndex = False):
 	sqler = sqlexecuter()
