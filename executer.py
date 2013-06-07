@@ -5,6 +5,7 @@ import string
 import random
 import MySQLdb
 import RedisCommand
+from tool import string2int
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
 
@@ -41,25 +42,37 @@ class Executer(object):
 		if the redis works, return True, response(may be int, list...)
 		if not, return False, response(a exception)
 		"""
-		arglist = command.split(' ')
+		arglist = [string2int(x) for x in command.split(' ')]
+		argv = len(arglist)
 		commandType = arglist[0].lower()
-		arglist = arglist[1:]
 
-		if commandType in self.redisCommands:
+		# 
+		if commandType == 'config' and argv > 1 and arglist[1].lower() == 'set':
+			commandType, arglist = 'config_set', arglist[2:]
+		elif commandType == 'config' and argv > 1 and arglist[1].lower() == 'get':
+			commandType, arglist = 'config_get', arglist[2:]
+		elif commandType == 'del':
+			commandType, arglist = 'delete', arglist[1:]
+		else:
+			arglist = arglist[1:]
+
+		if commandType in self.redisCommands.keys():
 			argv = self.redisCommands.get(commandType)
 			method = getattr(self.sqlredis, commandType)
 
-			if argv == 0:
-				result = method()
-			elif argv == -1:
-				result = method(*arglist)
-			else:
-				argv = argv if argv < len(arglist) else len(arglist)
-				result = method(*(arglist[0:argv]))
-			print result
+			try:
+				if argv == 0:
+					result = method()
+				elif argv == -1:
+					result = method(*arglist)
+				else:
+					argv = argv if argv < len(arglist) else len(arglist)
+					result = method(*(arglist[0:argv]))
+				return True, result
+			except Exception, e:
+				return False, e
 		else:
-			self.logger.error("No method named %s()." % commandType)
-			return False
+			return False, Exception("No method named %s()." % commandType)
 
 	def splitCommandFile(self, filepath):
 		"""
@@ -214,9 +227,13 @@ def testMySQL():
 
 def testRedisCommand():
 	rediser = Executer()
-	rediser.executeRedis("get p")
-	rediser.executeRedis("dbsize")
-
+	rediser.executeRedis('FLUSHALL')
+	rediser.executeRedis('RPUSH mylist b')
+	rediser.executeRedis('RPUSH mylist b')
+	rediser.executeRedis('RPUSH mylist b')
+	rediser.executeRedis('RPUSH mylist a')
+	rediser.executeRedis('LREM mylist 0 a')
+	print rediser.executeRedis('LRANGE mylist 0 -1')
 
 if __name__ == '__main__':
 	"""

@@ -4,7 +4,8 @@
 import sys
 import time
 import logging
-from executer import Executer
+from tool import isRedisCommand
+from executer impoExecuter
 from PyQt4 import QtGui, QtCore
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
@@ -53,9 +54,10 @@ class MainFrame(QtGui.QWidget):
 
 class MainWindow(QtGui.QMainWindow):
     def __init__(self):
-        self.logger = logging.getLogger()
-        self
         QtGui.QMainWindow.__init__(self)
+
+        self.logger = logging.getLogger()
+        self.runner = Executer()
 
         self.setWindowTitle(u'内存数据库')
         self.centralWidget = QtGui.QTabWidget()
@@ -234,27 +236,29 @@ class MainWindow(QtGui.QMainWindow):
         currentFrame = self.tabWidge.currentWidget()
         text = currentFrame.textEdit.toPlainText()
 
-    def runRedisCommand(self):
-        currentFrame = self.tabWidge.currentWidget()
-
-    def runSQLCommand(self):
-        runner = SQLExecuter()
-        success = False
-        resultlist = None
-        for action in runner.split_sql_text(str(sql)):
+        for action in runner.splitCommand(text):
             startTime = time.time()
-            success, resultlist = runner.executeSQL(action)
+            if isRedisCommand(action):
+                method = getattr(self, 'runRedisCommand')
+            else:
+                method = getattr(self, 'runSQLCommand')
+
+            success, resultlist = method(action)
             durantion = "%.4lfsec" % (time.time() - startTime)
-            
-            self.logger.debug("success = %s, resultlist = %s type(resultlist) = %s" % (str(success), str(resultlist), type(resultlist)))            
-            
             if success:
                 message = str(resultlist) + "affected." if isinstance(resultlist, long) else str(resultlist[0])
             else:
                 message = str(resultlist)
             self.addAction(action, message, durantion)
 
-        return
+
+    def runRedisCommand(self, command):
+        success, resultlist = runner.executeRedis(command)
+        if success:
+           
+ 
+    def runSQLCommand(self, command):
+        success, resultlist = runner.executeSQL(command)
         # select * from book
         if success:
             header = [QtCore.QString.fromUtf8(x[0]) for x in resultlist[0]]
