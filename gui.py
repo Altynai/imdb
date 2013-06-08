@@ -5,7 +5,7 @@ import sys
 import time
 import logging
 from tool import isRedisCommand
-from executer impoExecuter
+from executer import Executer
 from PyQt4 import QtGui, QtCore
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
@@ -22,7 +22,7 @@ class MainFrame(QtGui.QWidget):
     def __init__(self):
         super(MainFrame, self).__init__()
         global tabCount
-        self.fileName = u'新文件%d' % tabCount
+        self.fileName = u'newfile%d' % tabCount
         tabCount += 1
         self.filePath = ""
         self.initTextEdit()
@@ -81,9 +81,9 @@ class MainWindow(QtGui.QMainWindow):
 
 
     def initActionTableWidget(self):
-        self.actionTableWidget = QtGui.QTableWidget(0, 4)
+        self.actionTableWidget = QtGui.QTableWidget(0, 5)
         self.actionCount = 0
-        headerLabels = [u'时间', u'语句', u'结果', u'执行时间']
+        headerLabels = [u'zhuangtai', u'时间', u'语句', u'结果', u'执行时间']
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
@@ -205,10 +205,11 @@ class MainWindow(QtGui.QMainWindow):
         if not modified:
             return
         if not filePath:
-            filePath = QtGui.QFileDialog.getOpenFileName(self, u'保存')
+            filePath = QtGui.QFileDialog.getSaveFileName(self, u'保存')
+            if not filePath:
+                return
             fileName = filePath.split('/')[-1]
-        if not filePath:
-            return
+
         self.tabWidge.setTabText(currentIndex, fileName)
         currentFrame.fileName = fileName
         currentFrame.filePath = filePath
@@ -223,56 +224,41 @@ class MainWindow(QtGui.QMainWindow):
         if tabCount == 1:
             self.newFile()
 
-    def addAction(self, action = "", message = "", duration = ""):
+    def addAction(self, action = "", message = "", duration = "", correct = False):
         self.actionTableWidget.insertRow(self.actionCount)
         currentTime = time.strftime(r"%H:%M:%S", time.localtime())
-        arglist = [currentTime, action, message, duration]
+
+        png = "icon/yes.png" if correct else "icon/no.png"
+        icon = QtGui.QIcon(QtGui.QPixmap(png))
+
+        arglist = ['', currentTime, action, message, duration]
         for i in xrange(len(arglist)):
             content = QtCore.QString.fromUtf8(arglist[i])
-            self.actionTableWidget.setItem(self.actionCount, i, QtGui.QTableWidgetItem(content))
+            if i:
+                self.actionTableWidget.setItem(self.actionCount, i, QtGui.QTableWidgetItem(content))
+            else:
+                self.actionTableWidget.setItem(self.actionCount, i, QtGui.QTableWidgetItem(icon, ""))
         self.actionCount +=1
 
     def runCommand(self):
         currentFrame = self.tabWidge.currentWidget()
-        text = currentFrame.textEdit.toPlainText()
+        text = str(currentFrame.textEdit.toPlainText())
 
-        for action in runner.splitCommand(text):
-            startTime = time.time()
+        for action in self.runner.splitCommand(text):
             if isRedisCommand(action):
-                method = getattr(self, 'runRedisCommand')
+                durantion = self.runRedisCommand(action)
             else:
-                method = getattr(self, 'runSQLCommand')
-
-            success, resultlist = method(action)
-            durantion = "%.4lfsec" % (time.time() - startTime)
-            if success:
-                message = str(resultlist) + "affected." if isinstance(resultlist, long) else str(resultlist[0])
-            else:
-                message = str(resultlist)
-            self.addAction(action, message, durantion)
+                durantion = self.runSQLCommand(action)
 
 
     def runRedisCommand(self, command):
-        success, resultlist = runner.executeRedis(command)
-        if success:
-           
- 
-    def runSQLCommand(self, command):
-        success, resultlist = runner.executeSQL(command)
-        # select * from book
-        if success:
-            header = [QtCore.QString.fromUtf8(x[0]) for x in resultlist[0]]
-            resultlist = resultlist[1:]
-            columnCount = len(header)
-            rowCount = len(resultlist)
-            currentFrame.tableWidget.setColumnCount(columnCount)
-            currentFrame.tableWidget.setRowCount(rowCount)
-            currentFrame.tableWidget.setHorizontalHeaderLabels(header)
-            for i in xrange(rowCount):
-                for j in xrange(columnCount):
-                    content = QtCore.QString.fromUtf8(str(resultlist[i][j]))
-                    currentFrame.tableWidget.setItem(i, j, QtGui.QTableWidgetItem(content))
+        currentFrame = self.tabWidge.currentWidget()
+        startTime = time.time()
+        success, resultlist = self.runner.executeRedis(command)
+        endTime = time.time()
 
+        if success:
+            pass
         else:
             currentFrame.tableWidget.setColumnCount(1)
             currentFrame.tableWidget.setRowCount(1)
@@ -281,7 +267,37 @@ class MainWindow(QtGui.QMainWindow):
             errorString = QtCore.QString.fromUtf8(str(resultlist))
             currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(errorString))
 
-        
+    def runSQLCommand(self, command):
+        startTime = time.time()
+        currentFrame = self.tabWidge.currentWidget()
+        success, resultlist = self.runner.executeSQL(command)
+        durantion = "%.4lfsec" % (time.time() - startTime)
+
+        self.logger.debug(command)
+        self.logger.debug(str(success) + " " + str(resultlist))
+
+        # select * from book
+        if success:
+            if isinstance(resultlist, list):
+                header = [QtCore.QString.fromUtf8(x[0]) for x in resultlist[0]]
+                resultlist = resultlist[1:]
+                columnCount = len(header)
+                rowCount = len(resultlist)
+                currentFrame.tableWidget.setColumnCount(columnCount)
+                currentFrame.tableWidget.setRowCount(rowCount)
+                currentFrame.tableWidget.setHorizontalHeaderLabels(header)
+                for i in xrange(rowCount):
+                    for j in xrange(columnCount):
+                        content = QtCore.QString.fromUtf8(str(resultlist[i][j]))
+                        currentFrame.tableWidget.setItem(i, j, QtGui.QTableWidgetItem(content))
+                message = "%d rows returned" % rowCount
+            else:
+                message = "%d rows affected" % resultlist
+
+        else:
+            message = str(resultlist)
+
+        self.addAction(command, message, durantion, success)
 
     def clearCommand(self):
         for i in xrange(self.actionTableWidget.rowCount()):
