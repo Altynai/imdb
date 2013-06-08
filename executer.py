@@ -227,13 +227,7 @@ def testMySQL():
 
 def testRedisCommand():
 	rediser = Executer()
-	rediser.executeRedis('FLUSHALL')
-	rediser.executeRedis('RPUSH mylist b')
-	rediser.executeRedis('RPUSH mylist b')
-	rediser.executeRedis('RPUSH mylist b')
-	rediser.executeRedis('RPUSH mylist a')
-	rediser.executeRedis('LREM mylist 0 a')
-	print rediser.executeRedis('LRANGE mylist 0 -1')
+	print rediser.executeRedis('get pp')
 
 if __name__ == '__main__':
 	"""

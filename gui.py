@@ -35,7 +35,7 @@ class MainFrame(QtGui.QWidget):
         headerLabels = [x.decode('utf-8') for x in ('',) * columns]
         self.tableWidget.setHorizontalHeaderLabels(headerLabels)
         self.tableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-        self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.tableWidget.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.textEdit)
@@ -44,6 +44,7 @@ class MainFrame(QtGui.QWidget):
         vbox.addWidget(splitter)
         self.setLayout(vbox)
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
+        self.tableWidget.setVisible(False)
 
     def initTextEdit(self):
         self.textEdit = QtGui.QTextEdit()
@@ -77,7 +78,7 @@ class MainWindow(QtGui.QMainWindow):
         self.setCentralWidget(self.centralWidget)
 
         screen = QtGui.QDesktopWidget().screenGeometry()
-        self.setGeometry(0, 0, screen.width() * 0.75, screen.height()  * 0.75)
+        self.setGeometry(screen.width() * 0.3, screen.height() * 0.3, screen.width() * 0.5, screen.height() * 0.6)
 
 
     def initActionTableWidget(self):
@@ -86,7 +87,8 @@ class MainWindow(QtGui.QMainWindow):
         headerLabels = [u'zhuangtai', u'时间', u'语句', u'结果', u'执行时间']
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
-        self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.NoEditTriggers)
+        self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.actionTableWidget.setVisible(False)
 
 
     def initMenuBar(self):
@@ -225,6 +227,7 @@ class MainWindow(QtGui.QMainWindow):
             self.newFile()
 
     def addAction(self, action = "", message = "", duration = "", correct = False):
+        self.actionTableWidget.setVisible(True)
         self.actionTableWidget.insertRow(self.actionCount)
         currentTime = time.strftime(r"%H:%M:%S", time.localtime())
 
@@ -255,17 +258,14 @@ class MainWindow(QtGui.QMainWindow):
         currentFrame = self.tabWidge.currentWidget()
         startTime = time.time()
         success, resultlist = self.runner.executeRedis(command)
-        endTime = time.time()
+        durantion = "%.4lfsec" % (time.time() - startTime)
 
         if success:
-            pass
+            
         else:
-            currentFrame.tableWidget.setColumnCount(1)
-            currentFrame.tableWidget.setRowCount(1)
-            header = [QtCore.QString.fromUtf8("错误")]
-            currentFrame.tableWidget.setHorizontalHeaderLabels(header)
-            errorString = QtCore.QString.fromUtf8(str(resultlist))
-            currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(errorString))
+            message = str(resultlist)
+
+        self.addAction(command, message, durantion, success)
 
     def runSQLCommand(self, command):
         startTime = time.time()
@@ -283,6 +283,7 @@ class MainWindow(QtGui.QMainWindow):
                 resultlist = resultlist[1:]
                 columnCount = len(header)
                 rowCount = len(resultlist)
+                currentFrame.tableWidget.setVisible(True)
                 currentFrame.tableWidget.setColumnCount(columnCount)
                 currentFrame.tableWidget.setRowCount(rowCount)
                 currentFrame.tableWidget.setHorizontalHeaderLabels(header)
@@ -303,6 +304,7 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.actionTableWidget.rowCount()):
             self.actionTableWidget.removeRow(0)
         self.actionCount = 0
+        self.actionTableWidget.setVisible(False)
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
