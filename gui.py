@@ -248,6 +248,7 @@ class MainWindow(QtGui.QMainWindow):
         text = str(currentFrame.textEdit.toPlainText())
 
         for action in self.runner.splitCommand(text):
+            if action[-1] == ';':action = action[0:-1]
             if isRedisCommand(action):
                 durantion = self.runRedisCommand(action)
             else:
@@ -260,8 +261,14 @@ class MainWindow(QtGui.QMainWindow):
         success, resultlist = self.runner.executeRedis(command)
         durantion = "%.4lfsec" % (time.time() - startTime)
 
+        self.logger.debug("%s:%s, %s", command, str(success), str(resultlist))
         if success:
-            
+            currentFrame.tableWidget.setVisible(True)
+            currentFrame.tableWidget.setColumnCount(1)
+            currentFrame.tableWidget.setRowCount(1)
+            currentFrame.tableWidget.setHorizontalHeaderLabels([QtCore.QString.fromUtf8('jieguo')])
+            currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(QtCore.QString.fromUtf8(str(resultlist))))
+            message = "OK"
         else:
             message = str(resultlist)
 

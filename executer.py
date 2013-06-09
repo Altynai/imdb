@@ -227,7 +227,8 @@ def testMySQL():
 
 def testRedisCommand():
 	rediser = Executer()
-	print rediser.executeRedis('get pp')
+	print rediser.executeRedis('set p 1')
+	print rediser.executeRedis('get p')
 
 if __name__ == '__main__':
 	"""
