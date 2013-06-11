@@ -25,6 +25,18 @@ def isRedisCommand(command):
 	else:
 		return commandType in commands.keys()
 
+def formatRedisString(string):
+	length = len(string)
+	if length <= 1:
+		return string
+	if string[0] == '"' and string[-1] == '"':
+		string = string[1:-1]
+		return string
+
+	if string[0] == "'" and string[-1] == "'":
+		string = string[1:-1]
+	return string
+
 # =================test==================== #
 def test():
 	print isRedisCommand("select * from book")
@@ -34,6 +46,10 @@ def test():
 
 	print type(string2int("-1"))
 	print type(string2int("asa"))
+
+	print formatRedisString("'\"12345\"'")
+	print formatRedisString('"\'12345\'"')
+	print formatRedisString("normal")
 
 if __name__ == '__main__':
 	test()
