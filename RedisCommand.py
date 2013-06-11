@@ -35,7 +35,7 @@ def getRedisCommand():
 	commands.setdefault('debug_segfault', 0)
 	commands.setdefault('decr', 1)
 	commands.setdefault('decrby', 2)
-	commands.setdefault('del', -1)
+	commands.setdefault('delete', -1)
 	commands.setdefault('discard', 0)
 	commands.setdefault('dump', 1)
 	commands.setdefault('echo', 1)
