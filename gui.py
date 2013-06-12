@@ -151,7 +151,7 @@ class MainWindow(QtGui.QMainWindow):
         clearAction.setStatusTip(u'清除执行记录')
         self.connect(clearAction, QtCore.SIGNAL('triggered()'), self.clearCommand)
 
-        run = menubar.addMenu(u'&工具')
+        run = menubar.addMenu(u'&运行')
         run.addAction(runAction)
         run.addAction(clearAction)
 
@@ -159,10 +159,25 @@ class MainWindow(QtGui.QMainWindow):
         helpAction = QtGui.QAction(u'帮助', self)
         helpAction.setShortcut('Ctrl+H')
         helpAction.setStatusTip('获得帮助')
-        self.connect(helpAction, QtCore.SIGNAL('triggered()'), QtCore.SLOT('close()'))
+        self.connect(helpAction, QtCore.SIGNAL('triggered()'), self.help)
 
         help = menubar.addMenu(u'&帮助')
         help.addAction(helpAction)
+
+    def help(self):
+        helpDialog = QtGui.QDialog(self)
+        helpDialog.setWindowTitle(u'帮助')
+        layout = QtGui.QVBoxLayout()
+        textArea = QtGui.QLabel()
+        text = QtCore.QString()
+        with open("help", "r") as fin:
+            for line in fin.readlines():
+                # line = line.strip("\n")
+                text.append(QtCore.QString.fromUtf8(line))
+        textArea.setText(text)
+        layout.addWidget(textArea)
+        helpDialog.setLayout(layout)
+        helpDialog.show()
 
     def newFile(self):
         mainFrame = MainFrame()
@@ -314,6 +329,7 @@ class MainWindow(QtGui.QMainWindow):
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
+    app.setWindowIcon(QtGui.QIcon('icon/app.ico'))
     main = MainWindow()
     main.show()
     sys.exit(app.exec_())
