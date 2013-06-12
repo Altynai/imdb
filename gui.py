@@ -67,6 +67,7 @@ class MainWindow(QtGui.QMainWindow):
         self.initActionTableWidget()
         self.newFile()
         self.initMenuBar()
+        self.statusBar()
 
         splitter = QtGui.QSplitter(QtCore.Qt.Vertical)
         splitter.addWidget(self.tabWidge)
@@ -83,10 +84,11 @@ class MainWindow(QtGui.QMainWindow):
     def initActionTableWidget(self):
         self.actionTableWidget = QtGui.QTableWidget(0, 5)
         self.actionCount = 0
-        headerLabels = [u'zhuangtai', u'时间', u'语句', u'结果', u'执行时间']
+        headerLabels = [u'状态', u'时间', u'语句', u'结果', u'执行时间']
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
+        self.actionTableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
 
 
     def initMenuBar(self):
@@ -261,14 +263,15 @@ class MainWindow(QtGui.QMainWindow):
 
         self.logger.debug("%s:%s, %s", command, str(success), str(resultlist))
 
-        if success:
-            currentFrame.tableWidget.setColumnCount(1)
-            currentFrame.tableWidget.setRowCount(1)
-            currentFrame.tableWidget.setHorizontalHeaderLabels([QtCore.QString.fromUtf8('jieguo')])
-            currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(QtCore.QString.fromUtf8(str(resultlist))))
-            message = "OK"
-        else:
-            message = str(resultlist)
+        # if success:
+        #     currentFrame.tableWidget.insertRow(rowCount)
+        #     currentFrame.tableWidget.setColumnCount(1)
+        #     currentFrame.tableWidget.setRowCount(1)
+        #     currentFrame.tableWidget.setHorizontalHeaderLabels([QtCore.QString.fromUtf8('结果')])
+        #     currentFrame.tableWidget.setItem(0, 0, QtGui.QTableWidgetItem(QtCore.QString.fromUtf8(str(resultlist))))
+        #     message = "OK"
+        # else:
+        message = str(resultlist)
 
         self.addAction(command, message, durantion, success)
 
