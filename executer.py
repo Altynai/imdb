@@ -5,7 +5,7 @@ import string
 import random
 import MySQLdb
 import RedisCommand
-from tool import string2int
+from tool import *
 
 loggerformat ='line:[%(lineno)d] %(asctime)s %(filename)s %(levelname)s %(message)s'
 
@@ -55,6 +55,7 @@ class Executer(object):
 			commandType, arglist = 'delete', arglist[1:]
 		else:
 			arglist = arglist[1:]
+		arglist = [formatRedisString(x) for x in arglist]
 
 		if commandType in self.redisCommands.keys():
 			argv = self.redisCommands.get(commandType)
@@ -229,6 +230,8 @@ def testRedisCommand():
 	rediser = Executer()
 	print rediser.executeRedis('set p 1')
 	print rediser.executeRedis('get p')
+	print rediser.executeRedis('get p')
+	print rediser.executeRedis('del p')
 
 if __name__ == '__main__':
 	"""
