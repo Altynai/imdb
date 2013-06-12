@@ -1,0 +1,16 @@
+支持：部分SQL和Redis命令
+
+使用方法：在文本框中输入一条（多条用;分割）语句，点击“运行-命令”，相应结果显示在下面的表格中。
+
+注意事项：在多条语句分割符;之后，必须分行，如下：
+		create table book(
+			b_ISBN varchar(20),
+			name varchar(20)
+		);
+		select * from book;
+	或者：
+		append redisString "Hello";
+		append redisString " World!";
+		get redisString;
+
+版本：1.0
