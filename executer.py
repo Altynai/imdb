@@ -42,7 +42,7 @@ class Executer(object):
 		if the redis works, return True, response(may be int, list...)
 		if not, return False, response(a exception)
 		"""
-		arglist = [string2int(x) for x in command.split(' ')]
+		arglist = [string2int(x) for x in redisSplit(command)]
 		argv = len(arglist)
 		commandType = arglist[0].lower()
 
@@ -69,6 +69,7 @@ class Executer(object):
 				else:
 					argv = argv if argv < len(arglist) else len(arglist)
 					result = method(*(arglist[0:argv]))
+					self.logger.debug("%s\targs=%s" % (commandType, str(arglist[0:argv])))
 				return True, result
 			except Exception, e:
 				return False, e
@@ -228,10 +229,12 @@ def testMySQL():
 
 def testRedisCommand():
 	rediser = Executer()
-	print rediser.executeRedis('set p 1')
-	print rediser.executeRedis('get p')
-	print rediser.executeRedis('get p')
-	print rediser.executeRedis('del p')
+	print rediser.executeRedis('del mykey')
+	print rediser.executeRedis('exists mykey')
+	print rediser.executeRedis('set mykey ""')
+	print rediser.executeRedis('append mykey "hello"')
+	print rediser.executeRedis('append mykey " World"')
+	print rediser.executeRedis('get mykey')
 
 if __name__ == '__main__':
 	"""
