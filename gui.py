@@ -44,7 +44,6 @@ class MainFrame(QtGui.QWidget):
         vbox.addWidget(splitter)
         self.setLayout(vbox)
         QtGui.QApplication.setStyle(QtGui.QStyleFactory.create('Cleanlooks'))
-        self.tableWidget.setVisible(False)
 
     def initTextEdit(self):
         self.textEdit = QtGui.QTextEdit()
@@ -88,7 +87,6 @@ class MainWindow(QtGui.QMainWindow):
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
-        self.actionTableWidget.setVisible(False)
 
 
     def initMenuBar(self):
@@ -187,7 +185,8 @@ class MainWindow(QtGui.QMainWindow):
                 line = fin.readline()
                 if not line:
                     break
-                currentFrame.textEdit.append(line.strip("\n"))
+                line = line.strip("\n")
+                currentFrame.textEdit.append(QtCore.QString.fromUtf8(line))
 
     def saveAsFile(self):
         self.saveFile()
@@ -195,7 +194,7 @@ class MainWindow(QtGui.QMainWindow):
         if not filePath:
             return
         with open(filePath, "w") as fout:
-            fout.write(currentFrame.textEdit.toPlainText())
+            fout.write(currentFrame.textEdit.toPlainText().toUtf8())
 
     def saveFile(self):
         currentFrame = self.tabWidge.currentWidget()
@@ -216,7 +215,7 @@ class MainWindow(QtGui.QMainWindow):
         currentFrame.fileName = fileName
         currentFrame.filePath = filePath
         with open(filePath, "w") as fout:
-            fout.write(currentFrame.textEdit.toPlainText())
+            fout.write(currentFrame.textEdit.toPlainText().toUtf8())
 
     def closeFile(self):
         self.saveFile()
@@ -227,7 +226,6 @@ class MainWindow(QtGui.QMainWindow):
             self.newFile()
 
     def addAction(self, action = "", message = "", duration = "", correct = False):
-        self.actionTableWidget.setVisible(True)
         self.actionTableWidget.insertRow(self.actionCount)
         currentTime = time.strftime(r"%H:%M:%S", time.localtime())
 
@@ -245,7 +243,7 @@ class MainWindow(QtGui.QMainWindow):
 
     def runCommand(self):
         currentFrame = self.tabWidge.currentWidget()
-        text = str(currentFrame.textEdit.toPlainText())
+        text = str(currentFrame.textEdit.toPlainText().toUtf8())
 
         for action in self.runner.splitCommand(text):
             if action[-1] == ';':action = action[0:-1]
@@ -262,8 +260,8 @@ class MainWindow(QtGui.QMainWindow):
         durantion = "%.4lfsec" % (time.time() - startTime)
 
         self.logger.debug("%s:%s, %s", command, str(success), str(resultlist))
+
         if success:
-            currentFrame.tableWidget.setVisible(True)
             currentFrame.tableWidget.setColumnCount(1)
             currentFrame.tableWidget.setRowCount(1)
             currentFrame.tableWidget.setHorizontalHeaderLabels([QtCore.QString.fromUtf8('jieguo')])
@@ -290,7 +288,6 @@ class MainWindow(QtGui.QMainWindow):
                 resultlist = resultlist[1:]
                 columnCount = len(header)
                 rowCount = len(resultlist)
-                currentFrame.tableWidget.setVisible(True)
                 currentFrame.tableWidget.setColumnCount(columnCount)
                 currentFrame.tableWidget.setRowCount(rowCount)
                 currentFrame.tableWidget.setHorizontalHeaderLabels(header)
@@ -311,7 +308,6 @@ class MainWindow(QtGui.QMainWindow):
         for i in xrange(self.actionTableWidget.rowCount()):
             self.actionTableWidget.removeRow(0)
         self.actionCount = 0
-        self.actionTableWidget.setVisible(False)
 
 if __name__ == '__main__':
     app = QtGui.QApplication(sys.argv)
