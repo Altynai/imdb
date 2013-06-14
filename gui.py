@@ -88,7 +88,7 @@ class MainWindow(QtGui.QMainWindow):
         self.actionTableWidget.setHorizontalHeaderLabels(headerLabels)
         self.actionTableWidget.setSelectionBehavior(QtGui.QAbstractItemView.SelectItems)
         self.actionTableWidget.setEditTriggers(QtGui.QAbstractItemView.DoubleClicked)
-        self.actionTableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Stretch)
+        self.actionTableWidget.horizontalHeader().setResizeMode(QtGui.QHeaderView.Interactive)
 
 
     def initMenuBar(self):
